@@ -1,4 +1,4 @@
-A guide on building Caddy with the `forwardproxy` plugin on AlmaLinux 9 from scratch, including installation, configuration, and starting the service:
+A guide on building Caddy with the `forwardproxy` plugin on [Centmin Mod LEMP stack server](https://centminmod.com) running AlmaLinux 9.
 
 ### Step 1: Install Dependencies
 First, ensure you have the necessary tools for building software, as well as Go, which is required to build Caddy.
