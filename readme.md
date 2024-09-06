@@ -447,8 +447,8 @@ First, ensure you have the necessary tools for building software, as well as Go,
 If you want to distribute traffic across multiple Caddy instances, you can set up a load balancer like HAProxy to distribute requests. Here’s a basic example of an HAProxy config that balances across multiple Caddy proxies:
 
 ```haproxy
-frontend https-in
-    bind *:443
+frontend http-in
+    bind *:8080
     mode tcp
     default_backend caddy-backend
     # Optionally set timeouts
@@ -457,12 +457,168 @@ frontend https-in
 backend caddy-backend
     mode tcp
     balance roundrobin
-    server caddy1 caddy1.example.com:8081 check
-    server caddy2 caddy2.example.com:8081 check
-    server caddy3 caddy3.example.com:8081 check
+    server caddy1 192.168.1.10:8081 check
+    server caddy2 192.168.1.11:8081 check
+    server caddy3 192.168.1.12:8081 check
     # Optionally set timeouts
     timeout server 300s
 ```
+
+Or via Caddy load balancing:
+
+```caddy
+{
+    log {
+        output file /var/log/caddy/caddy_errors.log
+        level ERROR
+    }
+}
+
+:8080 {
+    reverse_proxy {
+        to 192.168.1.10:8081 192.168.1.11:8081 192.168.1.12:8081
+        lb_policy round_robin  # Round robin load balancing policy
+
+        # Optionally set timeouts
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 300s
+            keepalive 300s
+        }
+
+        # Active health checks (optional)
+        health_uri /health  # Health check endpoint
+        health_interval 30s # Frequency of health checks
+        health_timeout 5s   # Timeout for health checks
+        health_status 200   # Expected status code for healthy backends
+    }
+    
+    log {
+        output file /var/log/caddy/forward_proxy_access_8080.log
+        format json
+    }
+}
+```
+
+Combined with Caddy HTTP forward proxy:
+
+```caddy
+{
+    log {
+        output file /var/log/caddy/caddy_errors.log
+        level ERROR
+    }
+}
+
+# Forward Proxy Configuration on Port 8081
+:8081 {
+    route {
+        forward_proxy {
+            basic_auth yourusername yourpassword
+            hide_ip
+            hide_via
+            probe_resistance secret_token
+        }
+    }
+    log {
+        output file /var/log/caddy/forward_proxy_access_81.log
+        format json
+    }
+}
+
+# Load Balancer Configuration on Port 8080
+:8080 {
+    reverse_proxy {
+        to 192.168.1.10:8081 192.168.1.11:8081 192.168.1.12:8081  # Backend servers
+        lb_policy round_robin  # Round-robin load balancing policy
+
+        # Optionally set timeouts
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 300s
+            keepalive 300s
+        }
+
+        # Active health checks (optional)
+        health_uri /health  # Health check endpoint
+        health_interval 30s # Frequency of health checks
+        health_timeout 5s   # Timeout for health checks
+        health_status 200   # Expected status code for healthy backends
+    }
+    
+    log {
+        output file /var/log/caddy/forward_proxy_access_8080.log
+        format json
+    }
+}
+```
+
+To incorporate the load balancing configuration into your existing Caddyfile, you can add a new section for the reverse proxy that listens on port `8080` (or another port) and load balances between your backend servers (such as `192.168.1.10:8081`, `192.168.1.11:8081`, etc.).
+
+Here's how you can modify your existing Caddyfile:
+
+### Updated Caddyfile with Load Balancing:
+
+```caddy
+{
+    log {
+        output file /var/log/caddy/caddy_errors.log
+        level ERROR
+    }
+}
+
+# Forward Proxy Configuration on Port 8081
+:8081 {
+    route {
+        forward_proxy {
+            basic_auth yourusername yourpassword
+            hide_ip
+            hide_via
+            probe_resistance secret_token
+        }
+    }
+    log {
+        output file /var/log/caddy/forward_proxy_access_81.log
+        format json
+    }
+}
+
+# Load Balancer Configuration on Port 8080
+:8080 {
+    reverse_proxy {
+        to 192.168.1.10:8081 192.168.1.11:8081 192.168.1.12:8081  # Backend servers
+        lb_policy round_robin  # Round-robin load balancing policy
+
+        # Optionally set timeouts
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 300s
+            keepalive 300s
+        }
+
+        # Active health checks (optional)
+        health_uri /health  # Health check endpoint
+        health_interval 30s # Frequency of health checks
+        health_timeout 5s   # Timeout for health checks
+        health_status 200   # Expected status code for healthy backends
+    }
+    
+    log {
+        output file /var/log/caddy/forward_proxy_access_8080.log
+        format json
+    }
+}
+```
+
+- **Forward Proxy on Port 8081**: serving the forward proxy as it was before.
+- **Load Balancer on Port 8080**:
+  - **`reverse_proxy`**: This directive is used to define the load balancing behavior.
+  - **Backends**: The `to` directive specifies the backend servers (`192.168.1.10`, `192.168.1.11`, `192.168.1.12`) running on port `8081`.
+  - **Load Balancing Policy**: The `lb_policy round_robin` ensures that traffic is evenly distributed across backends.
+  - **Health Checks**: Optionally, health checks are enabled via `health_uri`, ensuring that only healthy backends are used.
+  - **Logging**: Access logs for the load balancer are saved to `/var/log/caddy/forward_proxy_access_8080.log` in JSON format.
+
+This configuration maintains your existing forward proxy on port `8081` while adding a new load balancer on port `8080` that distributes traffic across multiple backend servers.
 
 ### Conclusion
 
