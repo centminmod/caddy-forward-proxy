@@ -133,7 +133,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
            }
        }
        log {
-           output file /var/log/caddy/forward_proxy_access_81.log
+           output file /var/log/caddy/forward_proxy_access_8081.log
            format json
        }
    }
@@ -396,10 +396,10 @@ First, ensure you have the necessary tools for building software, as well as Go,
    * Connection #0 to host 192.168.122.60 left intact
    ```
 
-   Inspecting log at `/var/log/caddy/forward_proxy_access_81.log`:
+   Inspecting log at `/var/log/caddy/forward_proxy_access_8081.log`:
 
    ```bash
-   tail -10 /var/log/caddy/forward_proxy_access_81.log | jq -c | tail -1 | jq -r
+   tail -10 /var/log/caddy/forward_proxy_access_8081.log | jq -c | tail -1 | jq -r
    {
      "level": "info",
      "ts": 1725621534.613994,
@@ -521,7 +521,7 @@ Combined with Caddy HTTP forward proxy:
         }
     }
     log {
-        output file /var/log/caddy/forward_proxy_access_81.log
+        output file /var/log/caddy/forward_proxy_access_8081.log
         format json
     }
 }
