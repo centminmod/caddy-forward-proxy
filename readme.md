@@ -6,12 +6,23 @@ First, ensure you have the necessary tools for building software, as well as Go,
 1. **Update your system**:
    ```bash
    sudo dnf update -y
+   sudo dnf install clang llvm-devel -y
+   ```
+   ```bash
+   clang --version
+   clang version 17.0.6 (AlmaLinux OS Foundation 17.0.6-5.el9)
+   Target: x86_64-redhat-linux-gnu
+   Thread model: posix
+   InstalledDir: /usr/bin
    ```
 
 2. **Install Go**:
    Download and install the latest Go version (replace with the latest version link if necessary).
 
    ```
+   export CC=clang
+   export CXX=clang++
+
    /usr/local/src/centminmod/addons/golang.sh install
    grep -qxF 'export PATH=$PATH:/root/go/bin' ~/.bashrc || echo 'export PATH=$PATH:/root/go/bin' >> ~/.bashrc
    source /root/.bashrc
@@ -41,17 +52,42 @@ First, ensure you have the necessary tools for building software, as well as Go,
    ```bash
    mkdir -p /home/caddybuild
    cd /home/caddybuild
-   xcaddy build --with github.com/caddyserver/forwardproxy@latest
+   CGO_ENABLED=1 CC=clang CXX=clang++ xcaddy build --with github.com/caddyserver/forwardproxy@latest
    ```
 
    This will download the Caddy source code and build it with the forward proxy plugin.
+
+   For upgrades:
+
+   ```bash
+    caddy upgrade
+    2024/09/07 13:56:49.811 INFO    this executable will be replaced        {"path": "/usr/local/bin/caddy"}
+    2024/09/07 13:56:49.811 INFO    requesting build        {"os": "linux", "arch": "amd64", "packages": ["github.com/caddyserver/forwardproxy"]}
+    2024/09/07 13:56:49.881 INFO    build acquired; backing up current executable   {"current_path": "/usr/local/bin/caddy", "backup_path": "/usr/local/bin/caddy.tmp"}
+    2024/09/07 13:56:49.881 INFO    downloading binary      {"destination": "/usr/local/bin/caddy"}
+    2024/09/07 13:56:50.335 INFO    download successful; displaying new binary details      {"location": "/usr/local/bin/caddy"}
+
+    Module versions:
+
+    http.handlers.forward_proxy v0.0.0-20240718200834-02be81e69669
+
+      Non-standard modules: 1
+
+      Unknown modules: 0
+
+    Version:
+    v2.8.4 h1:q3pe0wpBj1OcHFZ3n/1nl4V4bxBrYoSoab7rL9BMYNk=
+
+    2024/09/07 13:56:50.396 INFO    upgrade successful; please restart any running Caddy instances  {"executable": "/usr/local/bin/caddy"}
+   ```
 
 3. **Setup Caddy**:
    Once the build is complete, move the Caddy binary to `/usr/local/bin`:
 
    ```bash
-   sudo mv caddy /usr/local/bin/caddy
+   sudo mv -f caddy /usr/local/bin/caddy
    sudo chmod +x /usr/local/bin/caddy
+   ls -lah $(which caddy)
    ```
 
    You can verify Caddy with:
