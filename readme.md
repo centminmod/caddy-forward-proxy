@@ -53,6 +53,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
    mkdir -p /home/caddybuild
    cd /home/caddybuild
    CGO_ENABLED=1 CC=clang CXX=clang++ xcaddy build --with github.com/caddyserver/forwardproxy@latest
+   strip caddy
    ```
 
    This will download the Caddy source code and build it with the forward proxy plugin.
