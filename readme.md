@@ -151,93 +151,93 @@ First, ensure you have the necessary tools for building software, as well as Go,
 
    Here is an example of a `Caddyfile` configured for forward proxying with non-HTTPS:
 
-   ```caddy
-   {
-       log {
-           output file /var/log/caddy/caddy_errors.log
-           level ERROR
-       }
-   }
+```caddy
+{
+        log {
+                output file /var/log/caddy/caddy_errors.log
+                level ERROR
+        }
+}
 
-   :8081 {
-       route {
-           forward_proxy {
-               basic_auth yourusername yourpassword
-               hide_ip
-               hide_via
-               probe_resistance secret_token
-           }
-       }
-       log {
-           output file /var/log/caddy/forward_proxy_access_8081.log
-           format json
-       }
-   }
-   ```
+:8081 {
+        route {
+                forward_proxy {
+                        basic_auth yourusername yourpassword
+                        hide_ip
+                        hide_via
+                        probe_resistance secret_token
+                }
+        }
+        log {
+                output file /var/log/caddy/forward_proxy_access_8081.log
+                format json
+        }
+}
+```
 
    This configuration makes Caddy listen on port 81 and act as a forward proxy.
 
    Here is an example of a `Caddyfile` configured for forward proxying with HTTPS:
 
-   ```caddy
-   {
-       log {
-           output file /var/log/caddy/caddy_errors.log
-           level ERROR
-       }
-   }
+```caddy
+{
+        log {
+                output file /var/log/caddy/caddy_errors.log
+                level ERROR
+        }
+}
 
-   :8444 {
-       tls /etc/ssl/certs/your_cert.pem /etc/ssl/private/your_key.pem
+:8444 {
+        tls /etc/ssl/certs/your_cert.pem /etc/ssl/private/your_key.pem
 
-       route {
-           forward_proxy {
-               basic_auth yourusername yourpassword
-               hide_ip
-               hide_via
-               probe_resistance secret_token
-           }
-       }
+        route {
+                forward_proxy {
+                        basic_auth yourusername yourpassword
+                        hide_ip
+                        hide_via
+                        probe_resistance secret_token
+                }
+        }
 
-       log {
-           output file /var/log/caddy/forward_proxy_access_8444.log
-           format json
-       }
-   }
-   ```
+        log {
+                output file /var/log/caddy/forward_proxy_access_8444.log
+                format json
+        }
+}
+```
 
    This configuration makes Caddy listen on port 443 and act as a forward proxy. You can secure it with basic authentication and add other options like hiding the client's IP and Via header. You’ll need to provide your own SSL certificate and private key for the `tls` directive.
 
    If you don’t have SSL certificates, you can use Caddy's automatic Let's Encrypt integration by simply specifying a domain name:
 
-   ```caddy
-   {
-       log {
-           output file /var/log/caddy/caddy_errors.log
-           level ERROR
-       }
-   }
+```caddy
+{
+        log {
+                output file /var/log/caddy/caddy_errors.log
+                level ERROR
+        }
+}
 
-   yourdomain.com:8444 {
-       tls {
-           dns cloudflare   # Optional: Use only if using DNS challenge, otherwise remove this line for HTTP-01 challenge
-       }
-       
-       route {
-           forward_proxy {
-               basic_auth yourusername yourpassword
-               hide_ip
-               hide_via
-               probe_resistance secret_token
-           }
-       }
+yourdomain.com:8444 {
+        tls {
+                dns cloudflare # Optional: Use only if using DNS challenge, otherwise remove this line for HTTP-01 challenge
+        }
 
-       log {
-           output file /var/log/caddy/forward_proxy_access_8444.log
-           format json
-       }
-   }
-   ```
+        route {
+                forward_proxy {
+                        basic_auth yourusername yourpassword
+                        hide_ip
+                        hide_via
+                        probe_resistance secret_token
+                }
+        }
+
+        log {
+                output file /var/log/caddy/forward_proxy_access_8444.log
+                format json
+        }
+}
+```
 
    In this case, Caddy will automatically generate and manage the SSL certificate for your domain.
 
@@ -285,6 +285,23 @@ First, ensure you have the necessary tools for building software, as well as Go,
 
    ```bash
    sudo systemctl status caddy
+   ```
+   ```bash
+   sudo systemctl status caddy --no-pager -l
+   ● caddy.service - Caddy web server
+        Loaded: loaded (/etc/systemd/system/caddy.service; enabled; preset: disabled)
+        Active: active (running) since Sat 2024-09-07 14:47:29 UTC; 3min 15s ago
+      Main PID: 1902173 (caddy)
+         Tasks: 18 (limit: 48720)
+        Memory: 11.5M
+           CPU: 58ms
+        CGroup: /system.slice/caddy.service
+                └─1902173 /usr/local/bin/caddy run --config /etc/caddy/Caddyfile
+   
+   Sep 07 14:47:29 almalinux9dev1 systemd[1]: Started Caddy web server.
+   Sep 07 14:47:29 almalinux9dev1 caddy[1902173]: {"level":"info","ts":1725720449.1528602,"msg":"using config from file","file":"/etc/caddy/Caddyfile"}
+   Sep 07 14:47:29 almalinux9dev1 caddy[1902173]: {"level":"info","ts":1725720449.1533403,"msg":"adapted config to JSON","adapter":"caddyfile"}
+   Sep 07 14:47:29 almalinux9dev1 caddy[1902173]: {"level":"info","ts":1725720449.1535723,"msg":"redirected default logger","from":"stderr","to":"/var/log/caddy/caddy_errors.log"}
    ```
 
 ### Step 5: Test Your Proxy
