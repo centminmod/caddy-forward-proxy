@@ -1,4 +1,4 @@
-A guide on building Caddy with the `forwardproxy` plugin on [Centmin Mod LEMP stack server](https://centminmod.com) running AlmaLinux 9.
+A guide on building Caddy with the `forwardproxy` plugin and hardened compiler options on [Centmin Mod LEMP stack server](https://centminmod.com) running AlmaLinux 9.
 
 ### Step 1: Install Dependencies
 First, ensure you have the necessary tools for building software, as well as Go, which is required to build Caddy.
@@ -52,6 +52,10 @@ First, ensure you have the necessary tools for building software, as well as Go,
    ```bash
    mkdir -p /home/caddybuild
    cd /home/caddybuild
+   # Set compiler and linker flags for enhanced security
+   export CGO_CFLAGS="-O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2"
+   export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fuse-ld=gold"
+   export GOFLAGS="-buildmode=pie"
    CGO_ENABLED=1 CC=clang CXX=clang++ xcaddy build --with github.com/caddyserver/forwardproxy@latest
    strip caddy
    ```
@@ -89,6 +93,25 @@ First, ensure you have the necessary tools for building software, as well as Go,
    sudo mv -f caddy /usr/local/bin/caddy
    sudo chmod +x /usr/local/bin/caddy
    ls -lah $(which caddy)
+   ```
+   ```
+   checksec --format=json --file=/usr/local/bin/caddy --extended | jq -r
+   {
+     "/usr/local/bin/caddy": {
+       "relro": "partial",
+       "canary": "no",
+       "nx": "yes",
+       "pie": "yes",
+       "clangcfi": "no",
+       "safestack": "no",
+       "rpath": "no",
+       "runpath": "no",
+       "symbols": "no",
+       "fortify_source": "yes",
+       "fortified": "2",
+       "fortify-able": "2"
+     }
+   }
    ```
 
    You can verify Caddy with:
@@ -158,6 +181,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
                 output file /var/log/caddy/caddy_errors.log
                 level ERROR
         }
+        auto_https off
 }
 
 :8081 {
@@ -172,6 +196,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
         log {
                 output file /var/log/caddy/forward_proxy_access_8081.log
                 format json
+                level INFO
         }
 }
 ```
