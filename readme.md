@@ -6,7 +6,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
 1. **Update your system**:
    ```bash
    sudo dnf update -y
-   sudo dnf install clang llvm-devel -y
+   sudo dnf install clang llvm-devel lld -y
    ```
    ```bash
    clang --version
@@ -54,7 +54,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
    cd /home/caddybuild
    # Set compiler and linker flags for enhanced security
    export CGO_CFLAGS="-O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2"
-   export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fuse-ld=gold"
+   export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fuse-ld=lld"
    export GOFLAGS="-buildmode=pie"
    CGO_ENABLED=1 CC=clang CXX=clang++ xcaddy build --with github.com/caddyserver/forwardproxy@latest
    strip caddy
@@ -98,7 +98,7 @@ First, ensure you have the necessary tools for building software, as well as Go,
    checksec --format=json --file=/usr/local/bin/caddy --extended | jq -r
    {
      "/usr/local/bin/caddy": {
-       "relro": "partial",
+       "relro": "full",
        "canary": "no",
        "nx": "yes",
        "pie": "yes",
